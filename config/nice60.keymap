@@ -6,73 +6,133 @@
 #include <dt-bindings/zmk/reset.h>
 #include <dt-bindings/zmk/ext_power.h>
 
-// Layers - https://zmk.dev/docs/behaviors/layers
+// Layer - https://zmk.dev/docs/behaviors/layers
+// order matters, match the order of keymap layers
 #define L_DEFAULT	0
-#define L_DRAFT    	1
-#define L_DISABLE	2
+#define L_FUNCTION  1
+#define L_FLASH		2
+#define L_DISABLE	3
+#define L_TRANS		4
+#define L_KARABINER	5
 
-// Combos - https://zmk.dev/docs/features/combos
+// Combo - https://zmk.dev/docs/features/combos
 #define C_DEFAULT_TIMEOUT			50
 #define C_DEFAULT_REQ_PRIOR_IDLE	(-1)
-#define C_DEFAULT_RELEASE			/delete-property/ slow-release
+#define C_DEFAULT_SLOW_RELEASE		/delete-property/ slow-release
 #define C_SLOW_RELEASE				slow-release
 
 #define COMBO(NAME, LAYERS, KEYS, BINDINGS, TIMEOUT, IDLE, RELEASE) \
 	combo_##NAME { \
-		layers = <LAYERS>; \
-		key-positions = <KEYS>; \
 		bindings = <BINDINGS>; \
+		key-positions = <KEYS>; \
 		timeout-ms = <TIMEOUT>; \
 		require-prior-idle-ms = <IDLE>; \
 		RELEASE; \
+		layers = <LAYERS>; \
 	};
+
+// Tap dance - https://zmk.dev/docs/behaviors/tap-dance
+#define TD_DEFAULT_TAPPING_TERM		200
+
+#define TAP_DANCE(NAME, TERM, BINDINGS) \
+	NAME: tap_dance_##NAME { \
+		compatible = "zmk,behavior-tap-dance"; \
+		#binding-cells = <0>; \
+		tapping-term-ms = <TERM>; \
+		bindings = <BINDINGS>; \
+	};
+
+// TODO: fix and test hold tap implementation
+// Hold tap - https://zmk.dev/docs/behaviors/hold-tap
+// #define HT_DEFAULT_TAPPING_TERM		200		// TODO: confirm this default
+// #define HT_DEFAULT_QUICK_TAP			(-1)
+// #define HT_DEFAULT_REQ_PRIOR_IDLE	(-1)	// TODO: confirm this default
+// #define HT_DEFAULT_RETRO_TAP			/delete-property/ retro-tap
+// #define HT_RETRO_TAP					retro-tap
+
+// #define HOLD_TAP(NAME, KEYS, BINDINGS, FLAVOR, TERM, QUICK_TAP, IDLE, RETRO_TAP) \
+// 	NAME: hold_tap_##NAME { \
+// 		compatible = "zmk,behavior-hold-tap"; \
+// 		#binding-cells = <2>; \
+// 		bindings = <BINDINGS>; \
+// 		flavor = "#FLAVOR"; \
+// 		tapping-term-ms = <TERM>; \
+// 		quick-tap-ms = <QUICK_TAP>; \
+// 		require-prior-idle-ms = <IDLE>; \
+// 		RETRO_TAP; \
+// 		hold-trigger-key-positions = <KEYS>; \
+
+// 	};
 
 / {
     combos {
         compatible = "zmk,combos";
 
 		// IDLE does not apply when in disable_layer
-		COMBO(disable, L_DEFAULT L_DISABLE, 0 13 53 60, &tog L_DISABLE, C_DEFAULT_TIMEOUT, 1000, C_DEFAULT_RELEASE)
+		COMBO(disable, L_DEFAULT L_DISABLE, 0 13 53 60, &tog L_DISABLE, C_DEFAULT_TIMEOUT, 1000, C_DEFAULT_SLOW_RELEASE)
+    };
+
+
+    behaviors {
+		TAP_DANCE(bt_cycle, 500, &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3)
+
+		// TODO: address tapping term (too slow, likely need to swap &mt for custom &ht)
+		TAP_DANCE(l_spacecmdr, TD_DEFAULT_TAPPING_TERM, &mt LSHIFT LPAR &kp LBRC &kp LBKT &kp LT)
+		TAP_DANCE(r_spacecmdr, TD_DEFAULT_TAPPING_TERM, &mt RSHIFT RPAR &kp RBRC &kp RBKT &kp GT)
+
+		// TODO: address tapping term and flavor (swap &lt for &ht?)
+		TAP_DANCE(layer_cycle, TD_DEFAULT_TAPPING_TERM, &lt L_FUNCTION ESC &tog L_FUNCTION &tog L_FLASH)
+
+		// TODO: in-progress
+		// foo: bar {
+		// 	compatible = "zmk,behavior-hold-tap";
+		// 	#binding-cells = <2>;
+		// 	flavor = "tap-preferred";
+		// 	tapping-term-ms = <200>;
+		// 	quick-tap-ms = <200>;
+		// 	require-prior-idle-ms = <125>;
+		// 	bindings = <&kp>, <&kp>;
+		// };
     };
 
 	keymap {
 		compatible = "zmk,keymap";
-		
+
 		default_layer {
 // ----------------------------------------------------------------------------------------------
-// | ESC |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  0  |  -  |  =  |     BKSP     |
+// | GRESC |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  0  |  -  |  =  |    BKSP    |
 // | TAB  |  Q  |  W  |  E  |  R  |  T  |  Y  |  U  |  I  |  O  |  P  |  [  |  ]  |     "|"     |
-// | CAPS  |  A  |  S  |  D  |  F  |  G  |  H  |  J  |  K  |  L  |  ;  |  '  |       ENTER      |
-// |  SHIFT  |  Z  |  X  |  C  |  V  |  B  |  N  |  M  |  ,  |  .  |  /  |        SHIFT         |
-// |  CTL  |  WIN  |  ALT  |            SPACE              |  ALT  |  WIN  |  CTL | MO(L_DRAFT) |
+// | L_CYC |  A  |  S  |  D  |  F  |  G  |  H  |  J  |  K  |  L  |  ;  |  '  |       ENTER      |
+// | L SPCMDR |  Z  |  X  |  C  |  V  |  B  |  N  |  M  |  ,  |  .  |  /  |       R SPCMDR      |
+// |  CTL  |  ALT  |  GUI  |            SPACE             |  GUI  |  ALT  | TO L_KAR | BT_CYCLE |
 // ----------------------------------------------------------------------------------------------
 			bindings = <
 	&gresc  &kp N1 &kp N2 &kp N3 &kp N4 &kp N5 &kp N6 &kp N7 &kp N8 &kp N9 &kp N0 &kp MINUS &kp EQUAL  &kp BSPC
 	&kp TAB  &kp Q  &kp W  &kp E  &kp R  &kp T  &kp Y  &kp U  &kp I  &kp O  &kp P  &kp LBKT  &kp RBKT  &kp BSLH
-	&kp CLCK  &kp A  &kp S  &kp D  &kp F  &kp G  &kp H  &kp J  &kp K  &kp L  &kp SEMI &kp SQT           &kp RET
-	&kp LSHFT   &kp Z  &kp X  &kp C  &kp V  &kp B  &kp N  &kp M  &kp COMMA &kp DOT &kp FSLH           &kp RSHFT
-	&kp LCTRL  &kp LALT  &kp LGUI            &kp SPACE              &kp RGUI  &kp RALT  &kp RCTRL   &mo L_DRAFT
+	&layer_cycle  &kp A  &kp S  &kp D  &kp F  &kp G  &kp H  &kp J  &kp K  &kp L  &kp SEMI &kp SQT &kp RET
+	&l_spacecmdr   &kp Z  &kp X  &kp C  &kp V  &kp B  &kp N  &kp M  &kp COMMA &kp DOT &kp FSLH     &r_spacecmdr
+	&kp LCTRL  &kp LALT  &kp LGUI            &kp SPACE             &kp RGUI  &kp RALT &to L_KARABINER &bt_cycle
 			>;
 		};
 
-		draft_layer {
+		function_layer {
 // -----------------------------------------------------------------------------------------
-// | BT CLR | F1  | F2  | F3  | F4  | F5  | F6  | F7  | F8  | F9  | F10  | F11 | F12 | F13 |
-// | BT 0  |     |     |     |     |     |     |     |     |     |     |     |     |       |
-// | BT 1   |     |     |     |     |     |     |     |     |     |     |     |            |
-// | BT 2    |     |     |     |     |     |     |     |     |     |     |                 |
-// | BT 3 |    |    |                               | BOOTLOADER | RESET | TOG OUT |       |
+// |        | F1  | F2  | F3  | F4  | F5  | F6  | F7  | F8  | F9  | F10  | F11 | F12 | F13 |
+// |     | PREV | PP | NEXT |     |     |     |     |     | UP |     |      |      |       |
+// |     |     | VOLDN | VOLUP | MUTE |    |    | LEFT | DOWN | RIGHT |    |    |          |
+// |         |     |     |     |     |     |     |     |     |     |     |                 |
+// |      |    |    |            BACKSPACE              |      |      | TOG OUT | BT CLEAR |
 // -----------------------------------------------------------------------------------------
 			bindings = <
-	&bt BT_CLR		&kp F1  &kp F2  &kp F3  &kp F4  &kp F5	&kp F6	&kp F7	&kp F8	&kp F9	&kp F10	&kp F11 &kp F12	&kp F13
-	&bt BT_SEL 0  	&trans  &trans  &trans  &trans  &trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	 &trans
-	&bt BT_SEL 1   	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans			 &trans
-	&bt BT_SEL 2    &trans  &trans  &trans  &trans	&trans	&trans  &trans  &trans  &trans  &trans                   &trans
-	&bt BT_SEL 3  	&trans  &trans                  &trans        			&bootloader     &sys_reset	&out OUT_TOG &trans
+	&trans  &kp F1  	&kp F2			&kp F3  		&kp F4  	&kp F5		&kp F6	&kp F7		&kp F8		&kp F9		&kp F10	&kp F11 &kp F12	 		&kp F13
+	&trans  &kp C_PREV	&kp C_PP  		&kp C_NEXT  	&trans  	&trans		&trans	&trans		&kp	UP		&trans		&trans	&trans	&trans	 		&trans
+	&trans  &trans		&kp C_VOL_DN	&kp C_VOL_UP	&kp C_MUTE	&trans		&trans	&kp LEFT	&kp DOWN	&kp RIGHT	&trans	&trans	&trans
+	&trans  &trans  	&trans  		&trans  		&trans		&trans		&trans  &trans  	&trans  	&trans		&trans  &trans
+	&trans  &trans  	&trans 										&kp BSPC       											&trans	&trans	&out OUT_TOG	&bt BT_CLR
 			>;
 		};
 
-		disable_layer {
+		flash_layer {
 // ------------------------------------------------------------------------------------------
 // |     |     |     |     |     |     |     |     |     |     |     |     |     |          |
 // |      |     |     |     |     |     |     |     |     |     |     |     |     |         |
@@ -81,6 +141,16 @@
 // |       |       |       |                               |       |       |      |         |
 // ------------------------------------------------------------------------------------------
 			bindings = <
+	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans			&trans
+	&trans	&trans  &trans  &trans  &trans  &trans	&trans 	&trans  &trans  &trans  &trans  &trans  &trans  		&trans
+	&trans  &trans  &trans  &trans 	&trans 	&trans 	&trans 	&trans 	&trans  &trans  &trans  &trans        			&trans
+	&trans  &trans  &trans	&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans                  		&trans
+	&trans 	&trans  &trans                          &trans                   		&trans	&trans	&bootloader	&sys_reset
+			>;
+		};
+
+		disable_layer {
+			bindings = <
 	&none	&none	&none	&none	&none	&none	&none	&none	&none	&none	&none	&none	&none	&none
 	&none	&none   &none   &none  	&none  	&none	&none 	&none  	&none   &none   &none   &none  	&none   &none
 	&none   &none  	&none  	&none 	&none 	&none 	&none 	&none 	&none   &none   &none   &none        	&none
@@ -88,5 +158,26 @@
 	&none 	&none   &none                           &none                   		&none	&none	&none   &none
 			>;
 		};
+
+		trans_layer {
+			bindings = <
+	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans
+	&trans	&trans  &trans  &trans  &trans  &trans	&trans 	&trans  &trans  &trans  &trans  &trans  &trans  &trans
+	&trans  &trans  &trans  &trans 	&trans 	&trans 	&trans 	&trans 	&trans  &trans  &trans  &trans        	&trans
+	&trans  &trans  &trans	&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans                  &trans
+	&trans 	&trans  &trans                          &trans                   		&trans	&trans	&trans  &trans
+			>;
+		};
+
+		karabiner_layer {
+			bindings = <
+	&trans		&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans	&trans			&trans
+	&trans		&trans  &trans  &trans  &trans  &trans	&trans 	&trans  &trans  &trans  &trans  &trans  &trans  		&trans
+	&kp CAPS	&trans  &trans  &trans 	&trans 	&trans 	&trans 	&trans 	&trans  &trans  &trans  &trans        			&trans
+	&trans  	&trans  &trans	&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans                  		&trans
+	&trans 		&trans  &trans                          &trans                  		&trans	&trans	&to L_DEFAULT	&trans
+			>;
+		};
+
 	};
 };
