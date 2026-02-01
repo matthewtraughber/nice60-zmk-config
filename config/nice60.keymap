@@ -11,7 +11,7 @@
     combos {
         compatible = "zmk,combos";
 
-        c_exit_null {
+        combo_exit_null {
             bindings = <&to 0>;
             key-positions = <0 53 13 60>;
             layers = <5>;
@@ -19,7 +19,7 @@
     };
 
     macros {
-        m_bt0: bt0c {
+        macro_bt0: bt0c {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             bindings =
@@ -29,7 +29,7 @@
             label = "BT0C";
         };
 
-        m_bt1: bt1 {
+        macro_bt1: bt1 {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             bindings =
@@ -39,7 +39,7 @@
             label = "BT1";
         };
 
-        m_out_tog: out_tog_clr {
+        macro_out_tog: out_tog_clr {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             bindings = <&macro_tap>, <&out OUT_TOG &rgb_ug RGB_OFF &bl BL_ON>;
@@ -57,7 +57,7 @@
 &kp TAB       &kp Q     &kp W   &kp E     &kp R   &kp T   &kp Y        &kp U   &kp I      &kp O    &kp P     &kp LBKT   &kp RBKT   &kp BSLH
 &lt 1 ESCAPE  &kp A     &kp S   &kp D     &kp F   &kp G   &kp H        &kp J   &kp K      &kp L    &kp SEMI  &kp SQT               &kp RET
 &kp LSHFT     &kp Z     &kp X   &kp C     &kp V   &kp B   &kp N        &kp M   &kp COMMA  &kp DOT  &kp FSLH                        &kp RSHFT
-&kp LCTRL     &kp LALT          &kp LGUI                  &lt 2 SPACE                              &kp RGUI  &kp RALT   &tog 3     &mo 4
+&kp LCTRL     &kp LALT          &kp LGUI                  &lt 2 SPACE                              &kp RGUI  &kp RALT   &mo 3      &mo 4
             >;
         };
 
@@ -73,11 +73,11 @@
 
         bt {
             bindings = <
-&m_out_tog  &m_bt0  &m_bt1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &bt BT_CLR
-&trans      &trans  &trans  &trans        &trans        &trans        &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans      &trans  &trans  &trans        &trans        &trans        &trans  &trans  &trans  &trans  &trans  &trans          &trans
-&trans      &trans  &trans  &trans        &trans        &trans        &trans  &trans  &trans  &trans  &trans                  &trans
-&trans      &trans          &trans                                    &trans                          &trans  &trans  &trans  &trans
+&macro_out_tog  &macro_bt0  &macro_bt1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &bt BT_CLR
+&trans          &trans      &trans      &trans        &trans        &trans        &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans          &trans      &trans      &trans        &trans        &trans        &trans  &trans  &trans  &trans  &trans  &trans          &trans
+&trans          &trans      &trans      &trans        &trans        &trans        &trans  &trans  &trans  &trans  &trans                  &trans
+&trans          &trans                  &trans                                    &trans                          &trans  &trans  &trans  &trans
             >;
         };
 
@@ -93,11 +93,11 @@
 
         sys {
             bindings = <
-&none         &none  &none  &none  &none  &none  &none  &none  &none  &none  &none              &none        &none  &none
-&none         &none  &none  &none  &none  &none  &none  &none  &none  &none  &none              &none        &none  &none
-&kp CAPSLOCK  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none              &none               &none
-&none         &none  &none  &none  &none  &none  &none  &none  &none  &none  &none                                  &none
-&to 5         &none         &none                &none                       &ext_power EP_TOG  &bootloader  &none  &sys_reset
+&none         &none  &none  &none  &none  &none  &none      &none  &none  &none  &none              &none        &none       &none
+&none         &none  &none  &none  &none  &none  &none      &none  &none  &none  &none              &none        &none       &none
+&kp CAPSLOCK  &none  &none  &none  &none  &none  &none      &none  &none  &none  &none              &none                    &none
+&none         &none  &none  &none  &none  &none  &none      &none  &none  &none  &none                                       &none
+&to 5         &none         &none                &soft_off                       &ext_power EP_TOG  &bootloader  &sys_reset  &none
             >;
         };
 
