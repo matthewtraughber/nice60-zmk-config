@@ -49,6 +49,26 @@
         };
     };
 
+    behaviors {
+        behavior_vol_bri_inc: behavior_vol_bri_inc {
+            compatible = "zmk,behavior-mod-morph";
+            label = "BEHAVIOR_VOL_BRI_INC";
+            bindings = <&kp C_VOLUME_UP>, <&kp C_BRIGHTNESS_INC>;
+
+            #binding-cells = <0>;
+            mods = <(MOD_LGUI)>;
+        };
+
+        behavior_vol_bri_dec: behavior_vol_bri_dec {
+            compatible = "zmk,behavior-mod-morph";
+            label = "BEHAVIOR_VOL_BRI_DEC";
+            bindings = <&kp K_VOLUME_DOWN>, <&kp C_BRIGHTNESS_DEC>;
+
+            #binding-cells = <0>;
+            mods = <(MOD_LGUI)>;
+        };
+    };
+
     keymap {
         compatible = "zmk,keymap";
 
@@ -64,11 +84,11 @@
 
         mod {
             bindings = <
-&kp GRAVE  &kp F1          &kp F2             &kp F3           &kp F4      &kp F5  &kp F6         &kp F7         &kp F8       &kp F9     &kp F10  &kp F11  &kp F12  &kp F13
-&trans     &kp C_PREVIOUS  &kp C_PLAY_PAUSE   &kp C_NEXT       &trans      &trans  &trans         &trans         &trans       &trans     &trans   &trans   &trans   &trans
-&trans     &trans          &kp C_VOLUME_DOWN  &kp C_VOLUME_UP  &kp C_MUTE  &trans  &kp LEFT       &kp DOWN       &kp UP       &kp RIGHT  &trans   &trans            &trans
-&trans     &trans          &trans             &trans           &trans      &trans  &kp HOME       &kp PAGE_DOWN  &kp PAGE_UP  &kp END    &trans                     &trans
-&trans     &trans                             &trans                               &kp BACKSPACE                                         &trans   &trans   &trans   &trans
+&kp GRAVE  &kp F1          &kp F2                 &kp F3                 &kp F4      &kp F5  &kp F6         &kp F7         &kp F8       &kp F9     &kp F10  &kp F11  &kp F12  &kp F13
+&trans     &kp C_PREVIOUS  &kp C_PLAY_PAUSE       &kp C_NEXT             &trans      &trans  &trans         &trans         &trans       &trans     &trans   &trans   &trans   &trans
+&trans     &trans          &behavior_vol_bri_dec  &behavior_vol_bri_inc  &kp C_MUTE  &trans  &kp LEFT       &kp DOWN       &kp UP       &kp RIGHT  &trans   &trans            &trans
+&trans     &trans          &trans                 &trans                 &trans      &trans  &kp HOME       &kp PAGE_DOWN  &kp PAGE_UP  &kp END    &trans                     &trans
+&trans     &trans                                 &trans                                     &kp BACKSPACE                                         &trans   &trans   &trans   &trans
             >;
         };
 
