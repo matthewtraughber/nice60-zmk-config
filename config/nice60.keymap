@@ -1,6 +1,5 @@
 #include <dt-bindings/zmk/reset.h>
 #include <behaviors.dtsi>
-#include <dt-bindings/zmk/backlight.h>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/ext_power.h>
 #include <dt-bindings/zmk/keys.h>
@@ -42,7 +41,9 @@
         macro_out_tog: out_tog_clr {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
-            bindings = <&macro_tap>, <&out OUT_TOG &rgb_ug RGB_OFF &bl BL_ON>;
+            bindings =
+                <&macro_tap>,
+                <&out OUT_TOG &rgb_ug RGB_COLOR_HSB(0,0,100) &rgb_ug RGB_ON>;
 
             label = "OUT_TOG_CLR";
         };
