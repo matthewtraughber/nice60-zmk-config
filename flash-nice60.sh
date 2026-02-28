@@ -35,7 +35,9 @@ TARGET_DIR="/Volumes/NICE60"
 ZIP="${SOURCE_DIR}/firmware.zip"
 FILE="${WORKING_DIR}/out/nice60-zmk.uf2"
 
-DOCKER_ID=$(docker ps | awk '/vsc-zmk/ { print $1 }')
+DOCKER_PS=$(docker ps --all --format json | jq --raw-output 'select(.Image | startswith("vsc-zmk"))')
+DOCKER_ID=$(jq --raw-output '.ID' <<< "${DOCKER_PS}")
+DOCKER_STATE=$(jq --raw-output '.State' <<< "${DOCKER_PS}")
 
 if [ -e "${ZIP}" ]
 then
@@ -49,8 +51,14 @@ else
     error "vsc-zmk Docker container not found"
     exit 1
   else
-    notice "Found vsc-zmk Docker container ID ${DOCKER_ID}"
-    docker exec -w /workspaces/zmk/app "${DOCKER_ID}" west -q build ${zmk_usb_logging:+--snippet "$zmk_usb_logging"} --pristine --board nice60 -- -DZMK_CONFIG="/workspaces/zmk-config/config"
+    if [ "${DOCKER_STATE}" != "running" ]; then
+      notice "Starting stopped vsc-zmk Docker container ${DOCKER_ID}"
+      docker start "${DOCKER_ID}"
+    else
+      notice "Found running vsc-zmk Docker container ID ${DOCKER_ID}"
+    fi
+    mkdir -p "$(dirname "${FILE}")"
+    docker exec --workdir /workspaces/zmk/app "${DOCKER_ID}" west --quiet build ${zmk_usb_logging:+--snippet "$zmk_usb_logging"} --pristine --board nice60 -- -DZMK_CONFIG="/workspaces/zmk-config/config"
     docker cp "${DOCKER_ID}:/workspaces/zmk/app/build/zephyr/zmk.uf2" "${FILE}"
   fi
 fi
@@ -58,7 +66,7 @@ fi
 if [ ! -d "${TARGET_DIR}" ]; then
   error "${TARGET_DIR} does not exist; put nice!60 in bootloader mode"
 else
-  mv "${FILE}" "${TARGET_DIR}"
+  cp "${FILE}" "${TARGET_DIR}" || [ ! -d "${TARGET_DIR}" ] # board reboots on flash, unmounting volume
   notice "Keyboard updated"
 fi
 
