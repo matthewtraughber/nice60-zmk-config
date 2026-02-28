@@ -63,10 +63,19 @@ else
   fi
 fi
 
+BOOTLOADER_TIMEOUT=30
 if [ ! -d "${TARGET_DIR}" ]; then
-  error "${TARGET_DIR} does not exist; put nice!60 in bootloader mode"
-else
-  cp "${FILE}" "${TARGET_DIR}" || [ ! -d "${TARGET_DIR}" ] # board reboots on flash, unmounting volume
-  notice "Keyboard updated"
+  notice "Waiting for ${TARGET_DIR} (double-tap reset to enter bootloader mode)..."
+  elapsed=0
+  while [ ! -d "${TARGET_DIR}" ] && [ "${elapsed}" -lt "${BOOTLOADER_TIMEOUT}" ]; do
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+  if [ ! -d "${TARGET_DIR}" ]; then
+    error "${TARGET_DIR} did not appear after ${BOOTLOADER_TIMEOUT}s"
+    exit 1
+  fi
 fi
+cp "${FILE}" "${TARGET_DIR}" || [ ! -d "${TARGET_DIR}" ] # board reboots on flash, unmounting volume
+notice "Keyboard updated"
 
